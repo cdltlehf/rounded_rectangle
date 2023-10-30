@@ -1,1 +1,3 @@
-cp -- *.lua /Applications/Ipe.app/Contents/Resources/ipelets/
+#! /bin/sh
+[ -d "$HOME/.ipe/ipelets" ] || mkdir -p "$HOME/.ipe/ipelets"
+cp -- *.lua "$HOME/.ipe/ipelets/"
