@@ -44,7 +44,7 @@ function collect_vertices(model)
 end
 
 
-function get_rounded_corner(v1, v2, v3, r)
+function get_rounded_corner(v1, v2, v3, l)
   u1 = (v1 - v2):normalized()
   u2 = (v3 - v2):normalized()
   u3 = (u1 + u2):normalized()
@@ -58,11 +58,11 @@ function get_rounded_corner(v1, v2, v3, r)
 
   if tan_theta == 0 then return end
 
-  local center = v2 + u3 * (r / sin_theta)
-  local w1 = v2 + u1 * (r / tan_theta)
-  local w2 = v2 + u2 * (r / tan_theta)
+  local center = v2 + u3 * (l / cos_theta)
+  local w1 = v2 + u1 * l
+  local w2 = v2 + u2 * l
 
-  return {center=center, w1=w1, w2=w2}
+  return {center=center, w1=w1, w2=w2, radius=tan_theta*l}
 end
 
 
@@ -90,21 +90,21 @@ function round_corner(model)
   end
 
   local dialog = ipeui.Dialog(
-      model.ui.win and model.ui:win() or model.ui, "Input a radius.")
-  dialog:add("radius_label", "label", {label="radius (pt)"}, 1, 1)
-  dialog:add("radius", "input", {}, 1, 2)
-  dialog:set("radius", "16")
+      model.ui.win and model.ui:win() or model.ui, "Input a length.")
+  dialog:add("length_label", "label", {label="length (pt)"}, 1, 1)
+  dialog:add("length", "input", {}, 1, 2)
+  dialog:set("length", "16")
   dialog:add("ok", "button", { label="&Ok", action="accept" }, 2, 2)
   dialog:add("cancel", "button", { label="&Cancel", action="reject" }, 2, 1)
 
   if not dialog:execute() then return end
-  local radius = tonumber(dialog:get("radius"))
+  local length = tonumber(dialog:get("length"))
 
-  if not radius then
-    model:warning("Radius must be a number")
+  if not length then
+    model:warning("length must be a number")
     return
   end
-  if radius <= 0 then return end
+  if length <= 0 then return end
 
   local shape = {type = "curve", closed = closed}
   local rounded_corners = {}
@@ -115,7 +115,7 @@ function round_corner(model)
     v1 = vs[i]
     v2 = vs[((i+1)-1) % #vs + 1]
     v3 = vs[((i+2)-1) % #vs + 1]
-    local rounded_corner = get_rounded_corner(v1, v2, v3, radius)
+    local rounded_corner = get_rounded_corner(v1, v2, v3, length)
     if not rounded_corner then
       model:warning("There exist corners with degree 0 or 180")
       return
@@ -132,6 +132,7 @@ function round_corner(model)
     local center = rounded_corners[i].center
     local w1 = rounded_corners[i].w1
     local w2 = rounded_corners[i].w2
+    local radius = rounded_corners[i].radius
 
     local arc_segment = get_arc_segment(w1, w2, center, radius)
     shape[#shape+1] = arc_segment
