@@ -8,9 +8,8 @@ about = [[
 Round Rectangle
 ]]
 
-function collect_vertices(model)
+function collect_vertices(model, primary_selection)
   local page = model:page()
-  local primary_selection = page:primarySelection()
   if not primary_selection then
     model.ui:warning("No shape is selected")
     return
@@ -77,10 +76,10 @@ end
 
 
 function round_corner(model)
-  local collected = collect_vertices(model)
-  if not collected then return end
-
   local page = model:page()
+  local primary_selection = page:primarySelection()
+  local collected = collect_vertices(model, primary_selection)
+  if not collected then return end
 
   local vs = collected.vs
   local closed = collected.closed
@@ -150,6 +149,7 @@ function round_corner(model)
 
   obj = ipe.Path(model.attributes, {shape})
   model:creation("Rounded result", obj)
+  -- page:remove(primary_selection)
 end
 
 
